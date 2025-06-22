@@ -10,7 +10,23 @@
 </head>
 <body>
   <div class="container">
-    <h1>Top 10 Cryptocurrency Prices</h1>
+    <h1>Top Cryptocurrency Prices</h1>
+    
+    <div class="controls">
+      <div class="search-box">
+        <input type="text" id="search-input" placeholder="Search coin...">
+        <button id="search-btn">Search</button>
+      </div>
+      
+      <div class="currency-selector">
+        <label for="currency">Currency:</label>
+        <select id="currency">
+          <option value="usd">USD ($)</option>
+          <option value="vnd">VND (₫)</option>
+        </select>
+      </div>
+    </div>
+    
     <div id="crypto-list"></div>
     <div class="footer">Last updated: <span id="time"></span></div>
   </div>
