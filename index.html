@@ -9,6 +9,20 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+  <header class="main-header">
+    <div class="container">
+      <div class="logo">
+        <a href="index.html">Crypto Tracker</a>
+      </div>
+      <nav class="main-nav">
+        <ul>
+          <li><a href="index.html" class="active">Home</a></li>
+          <li><a href="news.html">Crypto News</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
   <div class="container">
     <h1>Top Cryptocurrency Prices</h1>
     
@@ -28,7 +42,17 @@
     </div>
     
     <div id="crypto-list"></div>
-    <div class="footer">Last updated: <span id="time"></span></div>
+    
+    <div class="pagination">
+      <button id="prev-page" disabled>Previous</button>
+      <span id="page-info">Page 1 of 5</span>
+      <button id="next-page">Next</button>
+    </div>
+    
+    <div class="footer">
+      <p>Last updated: <span id="time"></span></p>
+      <p class="disclaimer">Data provided by CoinGecko API</p>
+    </div>
   </div>
   <script src="script.js"></script>
 </body>

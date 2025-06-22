@@ -1,49 +1,114 @@
+/* Reset & Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   background-color: #121826;
   color: white;
-  padding: 20px;
+  line-height: 1.6;
 }
 
 .container {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
+  padding: 20px;
 }
 
+/* Header Styles */
+.main-header {
+  background-color: #1E2130;
+  padding: 15px 0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.main-header .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo a {
+  color: #6C5CE7;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.main-nav ul {
+  display: flex;
+  list-style: none;
+  gap: 20px;
+}
+
+.main-nav a {
+  color: #E2E8F0;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.main-nav a:hover {
+  color: #6C5CE7;
+  background-color: rgba(108, 92, 231, 0.1);
+}
+
+.main-nav a.active {
+  color: #6C5CE7;
+  font-weight: 600;
+}
+
+/* Home Page Styles */
 h1 {
   text-align: center;
-  margin-bottom: 30px;
+  margin: 30px 0;
+  color: #6C5CE7;
 }
 
 .controls {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
   flex-wrap: wrap;
-  gap: 15px;
+  gap: 20px;
+  background-color: #1E2130;
+  padding: 15px;
+  border-radius: 8px;
 }
 
 .search-box {
   display: flex;
   gap: 10px;
+  flex-grow: 1;
 }
 
 .search-box input {
-  padding: 8px 12px;
-  border-radius: 4px;
+  padding: 10px 15px;
+  border-radius: 6px;
   border: none;
   background-color: #2A2F45;
   color: white;
-  width: 200px;
+  width: 100%;
+  font-size: 1rem;
 }
 
 .search-box button {
-  padding: 8px 16px;
+  padding: 10px 20px;
   background-color: #6C5CE7;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s;
 }
 
 .search-box button:hover {
@@ -56,31 +121,80 @@ h1 {
   gap: 10px;
 }
 
+.currency-selector label {
+  font-size: 0.9rem;
+  color: #94A3B8;
+}
+
 .currency-selector select {
-  padding: 8px;
-  border-radius: 4px;
+  padding: 10px;
+  border-radius: 6px;
   background-color: #2A2F45;
   color: white;
   border: none;
+  cursor: pointer;
+}
+
+#crypto-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 15px;
+  margin-bottom: 30px;
 }
 
 .crypto-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  background-color: #1E2130;
   padding: 15px;
-  border-bottom: 1px solid #2A2F45;
+  border-radius: 8px;
+  transition: transform 0.3s;
+}
+
+.crypto-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .crypto-info {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.crypto-rank {
+  color: #94A3B8;
+  font-size: 0.9rem;
 }
 
 .crypto-icon {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
+}
+
+.crypto-name {
+  font-weight: 600;
+}
+
+.crypto-symbol {
+  color: #94A3B8;
+  font-size: 0.9rem;
+  margin-left: 5px;
+}
+
+.crypto-price-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.crypto-price {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.price-change {
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .price-up {
@@ -91,46 +205,155 @@ h1 {
   color: #F87171;
 }
 
-.crypto-price {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
 .chart-container {
-  width: 100px;
-  height: 40px;
-  margin-left: 15px;
+  width: 100%;
+  height: 60px;
+  margin-top: 10px;
 }
 
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin: 30px 0;
+}
+
+.pagination button {
+  padding: 10px 20px;
+  background-color: #6C5CE7;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s;
+}
+
+.pagination button:hover:not(:disabled) {
+  background-color: #5D4ECB;
+}
+
+.pagination button:disabled {
+  background-color: #2A2F45;
+  color: #64748B;
+  cursor: not-allowed;
+}
+
+#page-info {
+  font-size: 0.9rem;
+  color: #94A3B8;
+}
+
+/* News Page Styles */
+#news-container {
+  margin-top: 30px;
+}
+
+.news-item {
+  background-color: #1E2130;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  transition: transform 0.3s;
+}
+
+.news-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.news-title {
+  color: #FFFFFF;
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+}
+
+.news-source {
+  color: #94A3B8;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+
+.news-description {
+  color: #E2E8F0;
+  margin-bottom: 15px;
+  line-height: 1.6;
+}
+
+.news-link {
+  color: #6C5CE7;
+  text-decoration: none;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.loading, .no-news, .error {
+  text-align: center;
+  color: #94A3B8;
+  font-size: 1.1rem;
+  padding: 40px 0;
+}
+
+.error button {
+  background-color: #6C5CE7;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+/* Footer */
 .footer {
   text-align: center;
-  margin-top: 30px;
+  margin-top: 40px;
   color: #94A3B8;
-  font-size: 14px;
+  font-size: 0.9rem;
+  padding-top: 20px;
+  border-top: 1px solid #2A2F45;
 }
 
-@media (max-width: 600px) {
+.footer p {
+  margin-bottom: 5px;
+}
+
+.disclaimer {
+  font-size: 0.8rem;
+  color: #64748B;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .main-header .container {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
   .controls {
     flex-direction: column;
   }
   
-  .search-box {
-    width: 100%;
+  #crypto-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 15px;
   }
   
-  .search-box input {
-    flex-grow: 1;
-  }
-  
-  .crypto-item {
-    flex-direction: column;
-    align-items: flex-start;
+  .pagination {
     gap: 10px;
   }
   
-  .crypto-price {
-    width: 100%;
-    justify-content: space-between;
+  .pagination button {
+    padding: 8px 15px;
+  }
+  
+  .main-nav ul {
+    gap: 10px;
   }
 }

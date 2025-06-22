@@ -1,61 +1,159 @@
 // Biến toàn cục
 let allCryptos = [];
 let currentCurrency = 'usd';
-let usdToVndRate = 24000; // Tỷ giá mặc định, sẽ cập nhật sau
+let usdToVndRate = 24000;
+let currentPage = 1;
+const coinsPerPage = 20;
+const maxPages = 5;
 
-// Hàm chính
+// DOM Elements
+const cryptoList = document.getElementById('crypto-list');
+const searchInput = document.getElementById('search-input');
+const searchBtn = document.getElementById('search-btn');
+const currencySelect = document.getElementById('currency');
+const prevPageBtn = document.getElementById('prev-page');
+const nextPageBtn = document.getElementById('next-page');
+const pageInfo = document.getElementById('page-info');
+const timeElement = document.getElementById('time');
+
+// Khởi tạo
+document.addEventListener('DOMContentLoaded', () => {
+  fetchCryptoData();
+  setupEventListeners();
+});
+
+function setupEventListeners() {
+  searchBtn.addEventListener('click', handleSearch);
+  searchInput.addEventListener('keyup', (e) => e.key === 'Enter' && handleSearch());
+  currencySelect.addEventListener('change', handleCurrencyChange);
+  prevPageBtn.addEventListener('click', goToPreviousPage);
+  nextPageBtn.addEventListener('click', goToNextPage);
+}
+
+function handleSearch() {
+  currentPage = 1;
+  filterAndDisplayCryptos();
+}
+
+async function handleCurrencyChange(e) {
+  currentCurrency = e.target.value;
+  currentPage = 1;
+  
+  if (currentCurrency === 'vnd') {
+    await fetchUsdToVndRate();
+  }
+  filterAndDisplayCryptos();
+}
+
 async function fetchCryptoData() {
   try {
-    // Lấy tỷ giá USD/VND nếu đang chọn VND
-    if (currentCurrency === 'vnd') {
-      await fetchUsdToVndRate();
-    }
+    const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&sparkline=true');
     
-    const response = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&sparkline=true`);
+    if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
+    
     const data = await response.json();
     allCryptos = data;
     filterAndDisplayCryptos();
+    setTimeout(fetchCryptoData, 60000);
   } catch (error) {
-    console.error('Error fetching data:', error);
-    document.getElementById('crypto-list').innerHTML = '<div class="error">Failed to load data. Please try again later.</div>';
+    console.error('Error fetching crypto data:', error);
+    showError('Failed to load data. Please try again later.');
+    setTimeout(fetchCryptoData, 30000);
   }
 }
 
-// Lấy tỷ giá USD/VND
 async function fetchUsdToVndRate() {
   try {
     const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+    if (!response.ok) throw new Error(`Exchange API failed with status ${response.status}`);
     const data = await response.json();
-    usdToVndRate = data.rates.VND;
+    usdToVndRate = data.rates.VND || 24000;
   } catch (error) {
     console.error('Error fetching exchange rate:', error);
-    // Sử dụng tỷ giá mặc định nếu không lấy được
     usdToVndRate = 24000;
   }
 }
 
-// Chuyển đổi tiền tệ
 function convertCurrency(price) {
-  if (currentCurrency === 'vnd') {
-    return (price * usdToVndRate).toLocaleString('vi-VN');
-  }
-  return price.toLocaleString('en-US', { maximumFractionDigits: 2 });
+  const value = currentCurrency === 'vnd' ? price * usdToVndRate : price;
+  const options = {
+    style: 'currency',
+    currency: currentCurrency === 'vnd' ? 'VND' : 'USD',
+    minimumFractionDigits: currentCurrency === 'vnd' ? 0 : 2,
+    maximumFractionDigits: currentCurrency === 'vnd' ? 0 : 6
+  };
+  return new Intl.NumberFormat(currentCurrency === 'vnd' ? 'vi-VN' : 'en-US', options).format(value);
 }
 
-// Hiển thị dữ liệu
 function filterAndDisplayCryptos() {
-  const searchInput = document.getElementById('search-input').value.toLowerCase();
-  const filteredCryptos = allCryptos.filter(crypto => 
-    crypto.name.toLowerCase().includes(searchInput) || 
-    crypto.symbol.toLowerCase().includes(searchInput)
-  ).slice(0, 10); // Giới hạn hiển thị 10 coin
-
-  displayCryptoData(filteredCryptos);
+  try {
+    const searchTerm = searchInput.value.toLowerCase();
+    let filteredCryptos = allCryptos;
+    
+    if (searchTerm) {
+      filteredCryptos = allCryptos.filter(crypto => 
+        crypto.name.toLowerCase().includes(searchTerm) || 
+        crypto.symbol.toLowerCase().includes(searchTerm)
+      );
+    }
+    
+    const startIndex = (currentPage - 1) * coinsPerPage;
+    const paginatedCryptos = filteredCryptos.slice(startIndex, startIndex + coinsPerPage);
+    
+    displayCryptoData(paginatedCryptos);
+    updatePagination(filteredCryptos.length);
+    updateLastUpdatedTime();
+  } catch (error) {
+    console.error('Error filtering cryptos:', error);
+    showError('Error displaying data. Please refresh the page.');
+  }
 }
 
-// Tạo biểu đồ
-function createSparklineChart(container, sparklineData) {
+function displayCryptoData(cryptos) {
+  if (!cryptos || cryptos.length === 0) {
+    cryptoList.innerHTML = '<div class="no-results">No cryptocurrencies found</div>';
+    return;
+  }
+  
+  cryptoList.innerHTML = cryptos.map(crypto => {
+    const priceChange = crypto.price_change_percentage_24h || 0;
+    const priceChangeClass = priceChange >= 0 ? 'price-up' : 'price-down';
+    const priceChangeText = priceChange >= 0 ? 
+      `+${priceChange.toFixed(2)}%` : 
+      `${priceChange.toFixed(2)}%`;
+    
+    return `
+      <div class="crypto-item">
+        <div class="crypto-info">
+          <span class="crypto-rank">${crypto.market_cap_rank}</span>
+          <img src="${crypto.image}" alt="${crypto.name}" class="crypto-icon">
+          <div>
+            <span class="crypto-name">${crypto.name}</span>
+            <span class="crypto-symbol">${crypto.symbol.toUpperCase()}</span>
+          </div>
+        </div>
+        <div class="crypto-price-container">
+          <span class="crypto-price">${convertCurrency(crypto.current_price)}</span>
+          <span class="price-change ${priceChangeClass}">${priceChangeText}</span>
+        </div>
+        <div class="chart-container" id="chart-${crypto.id}"></div>
+      </div>
+    `;
+  }).join('');
+  
+  cryptos.forEach(crypto => {
+    if (crypto.sparkline_in_7d?.price) {
+      createSparklineChart(crypto.id, crypto.sparkline_in_7d.price);
+    }
+  });
+}
+
+function createSparklineChart(coinId, sparklineData) {
   const canvas = document.createElement('canvas');
+  const container = document.getElementById(`chart-${coinId}`);
+  if (!container) return;
+  
+  container.innerHTML = '';
   container.appendChild(canvas);
   
   const dataPoints = sparklineData.slice(-7);
@@ -76,79 +174,44 @@ function createSparklineChart(container, sparklineData) {
     },
     options: {
       responsive: true,
-      plugins: {
-        legend: { display: false }
-      },
-      scales: {
-        x: { display: false },
-        y: { display: false }
-      }
+      plugins: { legend: { display: false } },
+      scales: { x: { display: false }, y: { display: false } }
     }
   });
 }
 
-// Hiển thị dữ liệu crypto
-function displayCryptoData(cryptos) {
-  const cryptoList = document.getElementById('crypto-list');
-  cryptoList.innerHTML = '';
-
-  if (cryptos.length === 0) {
-    cryptoList.innerHTML = '<div class="no-result">No cryptocurrencies found</div>';
-    return;
-  }
-
-  cryptos.forEach(crypto => {
-    const cryptoItem = document.createElement('div');
-    cryptoItem.className = 'crypto-item';
-
-    const priceChangeClass = crypto.price_change_percentage_24h >= 0 ? 'price-up' : 'price-down';
-    const priceChange = crypto.price_change_percentage_24h >= 0 ? 
-      `+${crypto.price_change_percentage_24h.toFixed(2)}%` : 
-      `${crypto.price_change_percentage_24h.toFixed(2)}%`;
-
-    const currencySymbol = currentCurrency === 'vnd' ? '₫' : '$';
-    const displayedPrice = convertCurrency(crypto.current_price);
-
-    cryptoItem.innerHTML = `
-      <div class="crypto-info">
-        <span>${crypto.market_cap_rank}</span>
-        <img src="${crypto.image}" alt="${crypto.name}" class="crypto-icon">
-        <span>${crypto.name} (${crypto.symbol.toUpperCase()})</span>
-      </div>
-      <div class="crypto-price">
-        <span>${currencySymbol}${displayedPrice}</span>
-        <span class="${priceChangeClass}">${priceChange}</span>
-      </div>
-    `;
-
-    const chartContainer = document.createElement('div');
-    chartContainer.className = 'chart-container';
-    cryptoItem.querySelector('.crypto-price').appendChild(chartContainer);
-    
-    cryptoList.appendChild(cryptoItem);
-
-    if (crypto.sparkline_in_7d?.price) {
-      createSparklineChart(chartContainer, crypto.sparkline_in_7d.price);
-    }
-  });
-
-  document.getElementById('time').textContent = new Date().toLocaleTimeString();
+function updatePagination(totalItems) {
+  const totalPages = Math.min(maxPages, Math.ceil(totalItems / coinsPerPage));
+  prevPageBtn.disabled = currentPage === 1;
+  nextPageBtn.disabled = currentPage >= totalPages;
+  pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
 }
 
-// Sự kiện tìm kiếm
-document.getElementById('search-btn').addEventListener('click', filterAndDisplayCryptos);
-document.getElementById('search-input').addEventListener('keyup', (e) => {
-  if (e.key === 'Enter') {
+function goToPreviousPage() {
+  if (currentPage > 1) {
+    currentPage--;
     filterAndDisplayCryptos();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
-});
+}
 
-// Sự kiện chuyển đổi tiền tệ
-document.getElementById('currency').addEventListener('change', (e) => {
-  currentCurrency = e.target.value;
-  filterAndDisplayCryptos();
-});
+function goToNextPage() {
+  if (currentPage < maxPages) {
+    currentPage++;
+    filterAndDisplayCryptos();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
 
-// Khởi chạy
-fetchCryptoData();
-setInterval(fetchCryptoData, 60000);
+function updateLastUpdatedTime() {
+  timeElement.textContent = new Date().toLocaleTimeString();
+}
+
+function showError(message) {
+  cryptoList.innerHTML = `
+    <div class="error">
+      ${message}
+      <button onclick="fetchCryptoData()">Retry</button>
+    </div>
+  `;
+}
